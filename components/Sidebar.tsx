@@ -18,7 +18,7 @@ const tools = [
     items: [
       {
         name: 'PDF 转图片',
-        href: '/tools/pdf-to-image',
+        href: '/tools/pdf/to-image',
         icon: FileText
       }
       // 可以在这里添加更多 PDF 相关工具
@@ -34,7 +34,7 @@ export default function Sidebar({ className, ...props }: SidebarProps) {
 
   return (
     <div className={cn('pb-12', className)} {...props}>
-      <div className="relative hidden h-screen border-r bg-muted/40 md:block w-72">
+      <div className="relative hidden h-screen w-72 border-r bg-muted/40 md:block">
         <div className="space-y-4 py-4">
           <div className="px-3 py-2">
             <div className="flex h-12 items-center justify-start px-4">
@@ -51,22 +51,41 @@ export default function Sidebar({ className, ...props }: SidebarProps) {
               </Link>
             </div>
           </div>
-          <div className="py-2">
-            <h2 className="relative px-7 text-sm font-semibold tracking-tight">PDF 工具</h2>
-            <ScrollArea className="px-1 py-2">
-              <div className="space-y-1 p-2">
-                <Link href="/tools/pdf-to-image" passHref>
-                  <Button
-                    variant={pathname === '/tools/pdf-to-image' ? 'secondary' : 'ghost'}
-                    className="w-full justify-start"
-                  >
-                    <FileText className="mr-2 h-4 w-4" />
-                    PDF 转图片
-                  </Button>
-                </Link>
-              </div>
-            </ScrollArea>
-          </div>
+          <ScrollArea className="px-1 py-2">
+            {tools.slice(1).map((tool, index) =>
+              'items' in tool ? (
+                // 渲染有子项的分类
+                <div key={index} className="py-2">
+                  <h2 className="relative px-7 text-sm font-semibold tracking-tight">{tool.name}</h2>
+                  <div className="space-y-1 p-2">
+                    {tool.items?.map((item, itemIndex) => (
+                      <Link key={itemIndex} href={item.href} passHref>
+                        <Button
+                          variant={pathname === item.href ? 'secondary' : 'ghost'}
+                          className="w-full justify-start"
+                        >
+                          {item.icon && <item.icon className="mr-2 h-4 w-4" />}
+                          {item.name}
+                        </Button>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                // 渲染没有子项的工具
+                <div key={index} className="px-3 py-2">
+                  <div className="space-y-1">
+                    <Link href={tool.href} passHref>
+                      <Button variant={pathname === tool.href ? 'secondary' : 'ghost'} className="w-full justify-start">
+                        {tool.icon && <tool.icon className="mr-2 h-4 w-4" />}
+                        {tool.name}
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              )
+            )}
+          </ScrollArea>
         </div>
       </div>
     </div>
