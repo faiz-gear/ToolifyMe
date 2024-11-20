@@ -28,7 +28,7 @@ export default function PDFConverter() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [imageFormat, setImageFormat] = useState<'jpeg' | 'png'>('jpeg')
   const [imageQuality, setImageQuality] = useState(0.9)
-  const [scale, setScale] = useState(2)
+  const [scale] = useState(2)
 
   const handleFileSelect = () => {
     fileInputRef.current?.click()
@@ -127,14 +127,14 @@ export default function PDFConverter() {
   }
 
   const handleDownloadAll = () => {
-    previewImages.forEach((image) => {
+    previewImages.forEach(image => {
       const format = imageFormat === 'jpeg' ? 'jpg' : 'png'
       saveAs(image.url, `page-${image.pageNumber}.${format}`)
     })
   }
 
   return (
-    <Card className="w-full max-w-5xl mx-auto">
+    <Card className="mx-auto w-full max-w-5xl">
       <CardHeader>
         <CardTitle>PDF 转图片</CardTitle>
         <CardDescription>将 PDF 文件转换为图片格式（支持 JPG、PNG）</CardDescription>
@@ -148,9 +148,9 @@ export default function PDFConverter() {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             className={cn(
-              'w-full max-w-sm h-32 border-2 border-dashed transition-colors duration-200',
+              'h-32 w-full max-w-sm border-2 border-dashed transition-colors duration-200',
               isDragging && 'border-primary bg-primary/10',
-              isProcessing && 'opacity-50 cursor-not-allowed'
+              isProcessing && 'cursor-not-allowed opacity-50'
             )}
             variant="outline"
             disabled={isProcessing}
@@ -162,10 +162,10 @@ export default function PDFConverter() {
             </div>
           </Button>
 
-          <div className="w-full max-w-sm flex gap-4">
+          <div className="flex w-full max-w-sm gap-4">
             <select
               value={imageFormat}
-              onChange={(e) => setImageFormat(e.target.value as 'jpeg' | 'png')}
+              onChange={e => setImageFormat(e.target.value as 'jpeg' | 'png')}
               className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="jpeg">JPG</option>
@@ -173,7 +173,7 @@ export default function PDFConverter() {
             </select>
             <select
               value={imageQuality}
-              onChange={(e) => setImageQuality(Number(e.target.value))}
+              onChange={e => setImageQuality(Number(e.target.value))}
               className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="0.7">普通质量</option>
@@ -184,17 +184,17 @@ export default function PDFConverter() {
         </div>
 
         {(progress > 0 || isProcessing) && (
-          <div className="w-full max-w-sm mx-auto">
+          <div className="mx-auto w-full max-w-sm">
             <Progress value={progress} className="h-2" />
-            <p className="text-sm text-center mt-2">处理进度：{progress}%</p>
+            <p className="mt-2 text-center text-sm">处理进度：{progress}%</p>
           </div>
         )}
 
         {previewImages.length > 0 && (
           <div className="w-full space-y-4">
-            <div className="flex items-center justify-between flex-wrap gap-4 pb-2 border-b">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-2">
               <h3 className="text-lg font-semibold">预览图片</h3>
-              <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex flex-wrap items-center gap-4">
                 <p className="text-sm text-muted-foreground">共 {previewImages.length} 页，点击图片可放大查看</p>
                 <Button variant="outline" size="sm" onClick={handleDownloadAll}>
                   <Download className="mr-2 h-4 w-4" />
@@ -203,23 +203,23 @@ export default function PDFConverter() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto max-h-[calc(100vh-24rem)]">
-              {previewImages.map((image) => (
+            <div className="grid max-h-[calc(100vh-24rem)] grid-cols-1 gap-4 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3">
+              {previewImages.map(image => (
                 <div
                   key={image.pageNumber}
-                  className="group relative border rounded-lg overflow-hidden bg-muted/30 shadow-sm hover:shadow-md transition-shadow"
+                  className="group relative overflow-hidden rounded-lg border bg-muted/30 shadow-sm transition-shadow hover:shadow-md"
                 >
                   <ImagePreview
-                    src={image.url}
+                    file={image.url}
                     alt={`Page ${image.pageNumber}`}
-                    className="w-full h-auto aspect-[3/4] object-contain bg-white"
+                    className="aspect-[3/4] h-auto w-full bg-white object-contain"
                   />
-                  <div className="absolute top-0 right-0 left-0 p-2 bg-gradient-to-b from-black/50 to-transparent flex items-center justify-between text-white">
+                  <div className="absolute left-0 right-0 top-0 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent p-2 text-white">
                     <span className="text-sm font-medium">第 {image.pageNumber} 页</span>
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-white hover:text-white hover:bg-white/20"
+                      className="h-8 w-8 p-0 text-white opacity-0 transition-opacity hover:bg-white/20 hover:text-white group-hover:opacity-100"
                       onClick={() => handleDownload(image.url, image.pageNumber)}
                     >
                       <Download className="h-4 w-4" />

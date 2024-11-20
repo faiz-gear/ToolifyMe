@@ -9,9 +9,10 @@ import 'yet-another-react-lightbox/styles.css'
 interface ImagePreviewProps {
   file: File | string
   className?: string
+  alt?: string
 }
 
-export function ImagePreview({ file, className = '' }: ImagePreviewProps) {
+export function ImagePreview({ file, className = '', alt = '' }: ImagePreviewProps) {
   const [preview, setPreview] = useState<string>('')
   const [open, setOpen] = useState(false)
 
@@ -29,7 +30,7 @@ export function ImagePreview({ file, className = '' }: ImagePreviewProps) {
     <>
       <img
         src={preview}
-        alt="预览图"
+        alt={alt}
         className={`cursor-zoom-in rounded-lg object-contain ${className}`}
         onClick={() => setOpen(true)}
       />
