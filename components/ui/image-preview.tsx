@@ -1,24 +1,47 @@
 'use client'
 
-import { useState } from 'react'
-import Zoom from 'react-medium-image-zoom'
-import 'react-medium-image-zoom/dist/styles.css'
-import { cn } from '@/lib/utils'
+import React, { useState, useEffect } from 'react'
+import Lightbox from 'yet-another-react-lightbox'
+import Zoom from 'yet-another-react-lightbox/plugins/zoom'
+import Download from 'yet-another-react-lightbox/plugins/download'
+import 'yet-another-react-lightbox/styles.css'
 
 interface ImagePreviewProps {
-  src: string
-  alt: string
+  file: File | string
   className?: string
 }
 
-export function ImagePreview({ src, alt, className }: ImagePreviewProps) {
+export function ImagePreview({ file, className = '' }: ImagePreviewProps) {
+  const [preview, setPreview] = useState<string>('')
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    if (typeof file === 'string') {
+      setPreview(file)
+    } else {
+      const objectUrl = URL.createObjectURL(file)
+      setPreview(objectUrl)
+      return () => URL.revokeObjectURL(objectUrl)
+    }
+  }, [file])
+
   return (
-    <Zoom>
+    <>
       <img
-        src={src}
-        alt={alt}
-        className={cn('cursor-zoom-in hover:opacity-90 transition-opacity object-contain w-full h-auto', className)}
+        src={preview}
+        alt="预览图"
+        className={`cursor-zoom-in rounded-lg object-contain ${className}`}
+        onClick={() => setOpen(true)}
       />
-    </Zoom>
+      <Lightbox
+        open={open}
+        close={() => setOpen(false)}
+        slides={[{ src: preview }]}
+        plugins={[Zoom, Download]}
+        render={{
+          buttonDownload: () => null // 禁用默认下载按钮
+        }}
+      />
+    </>
   )
 }
