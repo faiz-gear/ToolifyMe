@@ -40,6 +40,12 @@ export const tools: Tool[] = [
         href: '/tools/image/compress',
         icon: Image,
         description: '在线压缩图片，可调节压缩质量，支持批量处理'
+      },
+      {
+        name: '图片转pdf',
+        href: '/tools/image/to-pdf',
+        icon: FileText,
+        description: '将图片转换为pdf文件，支持批量处理'
       }
     ]
   }
