@@ -1,0 +1,5 @@
+# 检查是否为版本提交
+if [[ $(git log -1 --pretty=%B) =~ ^chore\(release\):\ [0-9]+\.[0-9]+\.[0-9]+.* ]]; then
+  echo "跳过版本提交的 changelog 生成"
+  exit 0
+fi 
