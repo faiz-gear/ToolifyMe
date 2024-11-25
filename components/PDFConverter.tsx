@@ -11,7 +11,7 @@ import { ImagePreview } from '@/components/ui/image-preview'
 import { saveAs } from 'file-saver'
 
 // 设置 PDF.js worker 路径
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`
 
 interface PreviewImage {
   url: string
@@ -52,7 +52,11 @@ export default function PDFConverter() {
 
     try {
       const arrayBuffer = await file.arrayBuffer()
-      const pdf = await pdfjsLib.getDocument(arrayBuffer).promise
+      const pdf = await pdfjsLib.getDocument({
+        data: arrayBuffer,
+        cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/cmaps/',
+        cMapPacked: true
+      }).promise
       const totalPages = pdf.numPages
       const newPreviewImages: PreviewImage[] = []
 
