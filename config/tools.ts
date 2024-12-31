@@ -46,6 +46,12 @@ export const tools: Tool[] = [
         href: '/tools/image/to-pdf',
         icon: FileText,
         description: '将图片转换为pdf文件，支持批量处理'
+      },
+      {
+        name: '图片水印',
+        href: '/tools/image/watermark',
+        icon: Image,
+        description: '为图片添加文字水印，支持自定义文字内容'
       }
     ]
   }
