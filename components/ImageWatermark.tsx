@@ -10,52 +10,65 @@ export function ImageWatermark() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setSelectedFile(file)
-      setPreviewUrl(null)
+  const drawWatermarks = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, text: string) => {
+    // Configure watermark text
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)'
+    const fontSize = Math.min(canvas.width * 0.08, 36)
+    ctx.font = `${fontSize}px Arial`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+
+    // Draw multiple watermarks in random positions
+    const numWatermarks = Math.floor((canvas.width * canvas.height) / 100000) // Adjust density
+    for (let i = 0; i < numWatermarks; i++) {
+      const x = Math.random() * canvas.width
+      const y = Math.random() * canvas.height
+      // Rotate each watermark slightly
+      ctx.save()
+      ctx.translate(x, y)
+      ctx.rotate(-Math.PI / 6) // Rotate -30 degrees
+      ctx.fillText(text, 0, 0)
+      ctx.restore()
     }
   }
 
   const handleWatermarkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const text = e.target.value.slice(0, 10) // Limit to 10 characters
+    const text = e.target.value.slice(0, 10)
     setWatermarkText(text)
+    if (selectedFile) {
+      generatePreview(text, selectedFile)
+    }
   }
 
-  const generatePreview = () => {
-    if (selectedFile && watermarkText) {
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
-      const img = new Image()
-
-      img.onload = () => {
-        // Set canvas size to match image
-        canvas.width = img.width
-        canvas.height = img.height
-
-        // Draw original image
-        ctx?.drawImage(img, 0, 0)
-
-        if (ctx) {
-          // Configure watermark text
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
-          ctx.font = `${Math.min(img.width * 0.1, 48)}px Arial`
-          ctx.textAlign = 'center'
-          ctx.textBaseline = 'middle'
-
-          // Draw watermark text
-          ctx.fillText(watermarkText, canvas.width / 2, canvas.height / 2)
-
-          // Convert to data URL and set preview
-          setPreviewUrl(canvas.toDataURL('image/jpeg'))
-        }
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setSelectedFile(file)
+      if (watermarkText) {
+        generatePreview(watermarkText, file)
       }
-
-      img.src = URL.createObjectURL(selectedFile)
-    } else {
-      setPreviewUrl(null)
     }
+  }
+
+  const generatePreview = (text: string, file: File = selectedFile!) => {
+    if (!file || !text) return
+
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    const img = new Image()
+
+    img.onload = () => {
+      canvas.width = img.width
+      canvas.height = img.height
+      ctx?.drawImage(img, 0, 0)
+
+      if (ctx) {
+        drawWatermarks(ctx, canvas, text)
+        setPreviewUrl(canvas.toDataURL('image/jpeg'))
+      }
+    }
+
+    img.src = URL.createObjectURL(file)
   }
 
   const downloadWatermarkedImage = async () => {
@@ -66,24 +79,12 @@ export function ImageWatermark() {
     const img = new Image()
 
     img.onload = () => {
-      // Set canvas size to match image
       canvas.width = img.width
       canvas.height = img.height
-
-      // Draw original image
       ctx?.drawImage(img, 0, 0)
 
       if (ctx) {
-        // Configure watermark text
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
-        ctx.font = `${Math.min(img.width * 0.1, 48)}px Arial`
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'middle'
-
-        // Draw watermark text
-        ctx.fillText(watermarkText, canvas.width / 2, canvas.height / 2)
-
-        // Convert to blob and download
+        drawWatermarks(ctx, canvas, watermarkText)
         canvas.toBlob(blob => {
           if (blob) {
             const url = URL.createObjectURL(blob)
@@ -98,6 +99,78 @@ export function ImageWatermark() {
     }
 
     img.src = URL.createObjectURL(selectedFile)
+  }
+
+  const handleGenerateWatermark = async () => {
+    if (!selectedFile || !watermarkText) return
+
+    try {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      const img = new Image()
+
+      img.src = URL.createObjectURL(selectedFile)
+      await new Promise(resolve => {
+        img.onload = () => {
+          canvas.width = img.width
+          canvas.height = img.height
+
+          // 绘制原始图片
+          ctx!.drawImage(img, 0, 0)
+
+          // 设置水印样式
+          ctx!.fillStyle = 'rgba(255, 255, 255, 0.5)'
+          ctx!.font = '48px Arial'
+
+          // 计算对角线长度，用于确保旋转后覆盖整个图片
+          const diagonal = Math.sqrt(canvas.width * canvas.width + canvas.height * canvas.height)
+
+          // 设置水印参数
+          const text = watermarkText
+
+          // 设置水印之间的间距（可以调整这个值来改变密度）
+          const density = 200 // 值越小水印越密集
+
+          // 计算需要的行数和列数
+          const numRows = Math.ceil(diagonal / density)
+          const numCols = Math.ceil(diagonal / density)
+
+          // 计算实际间距，使水印均匀分布
+          const xGap = diagonal / (numCols - 1)
+          const yGap = diagonal / (numRows - 1)
+
+          // 计算起始位置，使水印居中
+          const startX = -diagonal / 2
+          const startY = -diagonal / 2
+
+          // 保存画布状态
+          ctx!.save()
+
+          // 移动到画布中心并旋转
+          ctx!.translate(canvas.width / 2, canvas.height / 2)
+          ctx!.rotate(-Math.PI / 6) // -30度
+
+          // 绘制水印网格
+          for (let row = 0; row < numRows; row++) {
+            for (let col = 0; col < numCols; col++) {
+              const x = startX + col * xGap
+              const y = startY + row * yGap
+              ctx!.fillText(text, x, y)
+            }
+          }
+
+          // 恢复画布状态
+          ctx!.restore()
+
+          // 将处理后的图片转换为 base64
+          const watermarkedImage = canvas.toDataURL('image/jpeg')
+          setPreviewUrl(watermarkedImage)
+          resolve(true)
+        }
+      })
+    } catch (error) {
+      console.error('生成水印时出错:', error)
+    }
   }
 
   return (
@@ -122,7 +195,7 @@ export function ImageWatermark() {
           className="w-full rounded-md border px-4 py-2"
         />
         <div className="flex gap-2">
-          <Button onClick={generatePreview} disabled={!selectedFile || !watermarkText} className="flex-1">
+          <Button onClick={handleGenerateWatermark} disabled={!selectedFile || !watermarkText} className="flex-1">
             生成水印
           </Button>
           <Button onClick={downloadWatermarkedImage} disabled={!previewUrl} variant="outline" className="flex-1">
@@ -132,7 +205,7 @@ export function ImageWatermark() {
         {previewUrl && (
           <div>
             <h3 className="mb-2 text-sm font-medium">水印预览</h3>
-            <ImagePreview file={selectedFile!} className="max-h-[400px] object-contain" />
+            <ImagePreview file={previewUrl!} className="max-h-[400px] object-contain" />
           </div>
         )}
       </div>
